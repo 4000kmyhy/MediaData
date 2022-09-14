@@ -1,12 +1,12 @@
-package com.xu.mediadatatest.utils;
+package com.xu.mediadata.utils;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.xu.mediadatatest.MediaConfig;
-import com.xu.mediadatatest.entity.Music;
+import com.xu.mediadata.MediaConfig;
+import com.xu.mediadata.entity.Music;
 
 import java.util.ArrayList;
 import java.util.List;

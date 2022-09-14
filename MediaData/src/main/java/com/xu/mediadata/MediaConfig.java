@@ -1,10 +1,10 @@
-package com.xu.mediadatatest;
+package com.xu.mediadata;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
-import com.xu.mediadatatest.utils.SortOrder;
+import com.xu.mediadata.utils.SortOrder;
 
 /**
  * desc:

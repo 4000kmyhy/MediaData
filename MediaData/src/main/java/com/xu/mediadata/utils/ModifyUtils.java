@@ -1,4 +1,4 @@
-package com.xu.mediadatatest.utils;
+package com.xu.mediadata.utils;
 
 import android.app.Activity;
 import android.app.PendingIntent;

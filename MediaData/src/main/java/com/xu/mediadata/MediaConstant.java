@@ -1,4 +1,4 @@
-package com.xu.mediadatatest;
+package com.xu.mediadata;
 
 /**
  * desc:

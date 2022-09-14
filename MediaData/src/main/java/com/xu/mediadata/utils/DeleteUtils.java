@@ -1,4 +1,4 @@
-package com.xu.mediadatatest.utils;
+package com.xu.mediadata.utils;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -9,7 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
 
-import com.xu.mediadatatest.entity.Music;
+import com.xu.mediadata.entity.Music;
 
 import java.io.File;
 import java.util.ArrayList;
