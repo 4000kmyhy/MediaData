@@ -1,11 +1,11 @@
-package com.xu.mediadata.utils;
+package com.xxx.mediadata.utils;
 
 import android.content.Context;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.xu.mediadata.entity.Album;
-import com.xu.mediadata.entity.Music;
+import com.xxx.mediadata.entity.Album;
+import com.xxx.mediadata.entity.Music;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -1,4 +1,4 @@
-package com.xu.mediadata.utils
+package com.xxx.mediadata.utils
 
 import android.content.Context
 import android.media.MediaScannerConnection
@@ -32,7 +32,11 @@ class MediaScanner(context: Context?, path: String?, listener: OnMediaScannerLis
                 context.applicationContext,
                 object : MediaScannerConnectionClient {
                     override fun onMediaScannerConnected() {
-                        mConn?.scanFile(path, null)
+                        try {
+                            mConn?.scanFile(path, null)
+                        } catch (e: Throwable) {//runCallBack空指针？
+                            e.printStackTrace();
+                        }
                     }
 
                     override fun onScanCompleted(path: String, uri: Uri) {

@@ -1,12 +1,12 @@
-package com.xu.mediadata.utils;
+package com.xxx.mediadata.utils;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.xu.mediadata.MediaConfig;
-import com.xu.mediadata.entity.Music;
+import com.xxx.mediadata.MediaConfig;
+import com.xxx.mediadata.entity.Music;
 
 import java.util.ArrayList;
 import java.util.List;

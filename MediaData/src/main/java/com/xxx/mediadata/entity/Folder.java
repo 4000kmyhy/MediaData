@@ -1,24 +1,16 @@
-package com.xu.mediadata.entity;
+package com.xxx.mediadata.entity;
 
 /**
  * desc:
  * *
  * user: xujj
- * time: 2022/8/26 14:35
+ * time: 2022/8/26 14:53
  **/
-public class Artist {
+public class Folder {
 
-    private long id;
     private String name;
+    private String path;
     private int musicCount;
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -26,6 +18,14 @@ public class Artist {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public int getMusicCount() {
@@ -38,9 +38,9 @@ public class Artist {
 
     @Override
     public String toString() {
-        return "Artist{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
+        return "Folder{" +
+                "name='" + name + '\'' +
+                ", path='" + path + '\'' +
                 ", musicCount=" + musicCount +
                 '}';
     }

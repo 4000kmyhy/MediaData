@@ -1,10 +1,10 @@
-package com.xu.mediadata;
+package com.xxx.mediadata;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
-import com.xu.mediadata.utils.SortOrder;
+import com.xxx.mediadata.utils.SortOrder;
 
 /**
  * desc:

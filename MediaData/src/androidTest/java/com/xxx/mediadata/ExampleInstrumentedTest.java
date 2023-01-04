@@ -1,4 +1,4 @@
-package com.xu.mediadata;
+package com.xxx.mediadata;
 
 import android.content.Context;
 

@@ -1,4 +1,4 @@
-package com.xu.mediadata.entity;
+package com.xxx.mediadata.entity;
 
 import android.text.TextUtils;
 

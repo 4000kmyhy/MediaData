@@ -1,4 +1,4 @@
-package com.xu.mediadata.utils;
+package com.xxx.mediadata.utils;
 
 import android.provider.MediaStore;
 

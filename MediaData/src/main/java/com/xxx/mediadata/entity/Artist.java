@@ -1,17 +1,15 @@
-package com.xu.mediadata.entity;
+package com.xxx.mediadata.entity;
 
 /**
  * desc:
  * *
  * user: xujj
- * time: 2022/8/26 12:00
+ * time: 2022/8/26 14:35
  **/
-public class Album {
+public class Artist {
 
     private long id;
     private String name;
-    private long artistId;
-    private String artistName;
     private int musicCount;
 
     public long getId() {
@@ -30,22 +28,6 @@ public class Album {
         this.name = name;
     }
 
-    public long getArtistId() {
-        return artistId;
-    }
-
-    public void setArtistId(long artistId) {
-        this.artistId = artistId;
-    }
-
-    public String getArtistName() {
-        return artistName;
-    }
-
-    public void setArtistName(String artistName) {
-        this.artistName = artistName;
-    }
-
     public int getMusicCount() {
         return musicCount;
     }
@@ -56,11 +38,9 @@ public class Album {
 
     @Override
     public String toString() {
-        return "Album{" +
+        return "Artist{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", artistId=" + artistId +
-                ", artistName='" + artistName + '\'' +
                 ", musicCount=" + musicCount +
                 '}';
     }
