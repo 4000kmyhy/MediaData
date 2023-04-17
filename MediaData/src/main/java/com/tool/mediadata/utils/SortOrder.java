@@ -1,4 +1,4 @@
-package com.xxx.mediadata.utils;
+package com.tool.mediadata.utils;
 
 import android.provider.MediaStore;
 
@@ -10,6 +10,7 @@ import android.provider.MediaStore;
  **/
 public class SortOrder {
 
+    public final static String DATE_ADDED = MediaStore.Audio.Media.DATE_ADDED;
     public final static String DATE_ADDED_DESC = MediaStore.Audio.Media.DATE_ADDED + " desc";
     public final static String TITLE_A_Z = MediaStore.Audio.Media.TITLE;
     public final static String TITLE_Z_A = MediaStore.Audio.Media.TITLE + " desc";

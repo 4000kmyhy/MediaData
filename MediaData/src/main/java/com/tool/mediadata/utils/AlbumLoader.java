@@ -1,11 +1,11 @@
-package com.xxx.mediadata.utils;
+package com.tool.mediadata.utils;
 
 import android.content.Context;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.xxx.mediadata.entity.Album;
-import com.xxx.mediadata.entity.Music;
+import com.tool.mediadata.entity.Album;
+import com.tool.mediadata.entity.Music;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -38,12 +38,7 @@ public class AlbumLoader {
 
                 Album album = albumMap.get(albumId);
                 if (album == null) {
-                    album = new Album();
-                    album.setId(albumId);
-                    album.setName(albumName);
-                    album.setArtistId(artistId);
-                    album.setArtistName(artistName);
-                    album.setMusicCount(1);
+                    album = new Album(albumId, albumName, artistId, artistName, 1);
                     albumMap.put(albumId, album);
                 } else {
                     album.setMusicCount(album.getMusicCount() + 1);

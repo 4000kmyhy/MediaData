@@ -1,4 +1,4 @@
-package com.xxx.mediadata;
+package com.tool.mediadata;
 
 /**
  * desc:

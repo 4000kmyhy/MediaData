@@ -1,4 +1,4 @@
-package com.xxx.mediadata.utils;
+package com.tool.mediadata.utils;
 
 import android.app.Activity;
 import android.app.PendingIntent;

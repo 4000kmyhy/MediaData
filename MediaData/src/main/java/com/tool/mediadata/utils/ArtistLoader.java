@@ -1,11 +1,11 @@
-package com.xxx.mediadata.utils;
+package com.tool.mediadata.utils;
 
 import android.content.Context;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.xxx.mediadata.entity.Artist;
-import com.xxx.mediadata.entity.Music;
+import com.tool.mediadata.entity.Artist;
+import com.tool.mediadata.entity.Music;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -36,10 +36,7 @@ public class ArtistLoader {
 
                 Artist artist = artistMap.get(artistId);
                 if (artist == null) {
-                    artist = new Artist();
-                    artist.setId(artistId);
-                    artist.setName(artistName);
-                    artist.setMusicCount(1);
+                    artist = new Artist(artistId, artistName, 1);
                     artistMap.put(artistId, artist);
                 } else {
                     artist.setMusicCount(artist.getMusicCount() + 1);

@@ -1,10 +1,10 @@
-package com.xxx.mediadata;
+package com.tool.mediadata;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
-import com.xxx.mediadata.utils.SortOrder;
+import com.tool.mediadata.utils.SortOrder;
 
 /**
  * desc:
@@ -30,7 +30,7 @@ public class MediaConfig {
     public String sortOrder;
 
     public void init(Context context) {
-        sortOrder = (String) get(context, "music_sort_order", SortOrder.TITLE_A_Z);
+        sortOrder = (String) get(context, "music_sort_order", SortOrder.DATE_ADDED_DESC);
     }
 
     public void setSortOrder(Context context, String sortOrder) {

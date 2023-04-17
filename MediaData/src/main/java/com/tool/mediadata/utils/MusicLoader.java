@@ -1,12 +1,12 @@
-package com.xxx.mediadata.utils;
+package com.tool.mediadata.utils;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.xxx.mediadata.MediaConfig;
-import com.xxx.mediadata.entity.Music;
+import com.tool.mediadata.MediaConfig;
+import com.tool.mediadata.entity.Music;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,17 +70,7 @@ public class MusicLoader {
                         }
                     }
 
-                    Music music = new Music();
-                    music.setId(id);
-                    music.setArtistId(artistId);
-                    music.setAlbumId(albumId);
-                    music.setTitle(title);
-                    music.setArtist(artist);
-                    music.setAlbum(album);
-                    music.setData(data);
-                    music.setDisplayName(displayName);
-                    music.setDuration(duration);
-
+                    Music music = new Music(id, artistId, albumId, title, artist, album, displayName, data, duration);
                     musicList.add(music);
                 }
             }

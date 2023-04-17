@@ -1,11 +1,11 @@
-package com.xxx.mediadata.utils;
+package com.tool.mediadata.utils;
 
 import android.content.Context;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 
-import com.xxx.mediadata.entity.Folder;
-import com.xxx.mediadata.entity.Music;
+import com.tool.mediadata.entity.Folder;
+import com.tool.mediadata.entity.Music;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -39,10 +39,7 @@ public class FolderLoader {
 
                     Folder folder = folderMap.get(path);
                     if (folder == null) {
-                        folder = new Folder();
-                        folder.setName(folderName);
-                        folder.setPath(path);
-                        folder.setMusicCount(1);
+                        folder = new Folder(folderName, path, 1);
                         folderMap.put(path, folder);
                     } else {
                         folder.setMusicCount(folder.getMusicCount() + 1);
