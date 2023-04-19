@@ -31,6 +31,8 @@ public class DeleteUtils {
         void success();
 
         void failed();
+
+        void request();
     }
 
     private static OnDeleteCallback onDeleteCallback;
@@ -90,7 +92,11 @@ public class DeleteUtils {
                         uris.add(targetUri);
                     }
                     PendingIntent pendingIntent = MediaStore.createDeleteRequest(activity.getContentResolver(), uris);
-                    activity.startIntentSenderForResult(pendingIntent.getIntentSender(), DELETE_MUSIC_CODE, null, 0, 0, 0);
+                    activity.startIntentSenderForResult(pendingIntent.getIntentSender(), DELETE_MUSIC_CODE,
+                            null, 0, 0, 0);
+                    if (onDeleteCallback != null) {
+                        onDeleteCallback.request();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     if (onDeleteCallback != null) {

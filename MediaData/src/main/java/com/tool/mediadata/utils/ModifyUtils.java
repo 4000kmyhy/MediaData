@@ -28,6 +28,8 @@ public class ModifyUtils {
         void success();
 
         void failed();
+
+        void request();
     }
 
     private static OnModifyCallback onModifyCallback;
@@ -75,6 +77,9 @@ public class ModifyUtils {
                     PendingIntent pendingIntent = MediaStore.createWriteRequest(activity.getContentResolver(), uris);
                     activity.startIntentSenderForResult(pendingIntent.getIntentSender(), MODIFY_INFO_CODE,
                             null, 0, 0, 0);
+                    if (onModifyCallback != null) {
+                        onModifyCallback.request();
+                    }
                 } catch (Exception e1) {
                     e1.printStackTrace();
                     if (onModifyCallback != null) {
