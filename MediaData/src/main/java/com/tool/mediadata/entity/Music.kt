@@ -15,9 +15,9 @@ data class Music(
     var id: Long,
     var artistId: Long,
     var albumId: Long,
-    var title: String,
-    var artist: String,
-    var album: String,
+    var title: String?,
+    var artist: String?,
+    var album: String?,
     var displayName: String?,
     var data: String,
     var duration: Long
@@ -37,6 +37,6 @@ data class Music(
     }
 
     override fun toString(): String {
-        return "Music(id=$id, title='$title', artist='$artist', album='$album', data='$data')"
+        return "Music(id=$id, title='$title', artist='$artist', album='$album', data='$data', artistId='$artistId', albumId='$albumId')"
     }
 }

@@ -12,8 +12,8 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Album(
     var id: Long,
-    var name: String,
+    var name: String?,
     var artistId: Long,
-    var artistName: String,
+    var artistName: String?,
     var musicCount: Int
 ) : Parcelable

@@ -52,7 +52,7 @@ public class AlbumLoader {
                     if (TextUtils.isEmpty(name)) {
                         albumList.add(album);
                     } else {
-                        if (album.getName().toLowerCase().contains(name.toLowerCase())) {
+                        if (album.getName() != null && album.getName().toLowerCase().contains(name.toLowerCase())) {
                             albumList.add(album);
                         }
                     }

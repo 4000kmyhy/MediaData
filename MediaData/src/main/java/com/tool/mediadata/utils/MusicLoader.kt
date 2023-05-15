@@ -38,6 +38,11 @@ object MusicLoader {
         if (context == null) return musicList
         val sb = StringBuilder()
         sb.append(MediaStore.Audio.Media.DURATION + " > 0")
+        sb.append(" AND " + MediaStore.Audio.Media.ARTIST_ID + " > 0")
+        sb.append(" AND " + MediaStore.Audio.Media.ALBUM_ID + " > 0")
+        sb.append(" AND " + MediaStore.Audio.Media.TITLE + " != ''")
+        sb.append(" AND " + MediaStore.Audio.Media.ARTIST + " != 'null'")
+        sb.append(" AND " + MediaStore.Audio.Media.ALBUM + " != 'null'")
         if (!TextUtils.isEmpty(selection)) {
             sb.append(" AND $selection")
         }

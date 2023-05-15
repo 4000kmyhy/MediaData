@@ -87,8 +87,12 @@ class PlaylistOpenHelper(context: Context?, dbName: String = "playlist.db") :
     fun deletePlaylist(pid: Long) {
         try {
             db = writableDatabase
+            //删除歌单表中数据
             val sql = "delete from $TABLE_PLAYLIST where $PLAYLIST_ID = $pid"
             db?.execSQL(sql)
+            //删除歌曲表中数据
+            val sq2 = "delete from $TABLE_MUSIC where $MUSIC_PLAYLIST_ID = $pid"
+            db?.execSQL(sq2)
         } catch (e: Exception) {
             e.printStackTrace()
         } finally {
