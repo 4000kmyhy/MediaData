@@ -195,10 +195,12 @@ object MusicLoader {
         if (ids == null) return ArrayList()
         val newList = ArrayList<Music>()
         val musicList = getMusicListByIds(context, ids)
+        val map: Map<Long, Music> = musicList.associateBy { it.id }
         for (id in ids) {
-            musicList.find { it.id == id }?.let {
-                newList.add(it)
-            }
+//            musicList.find { it.id == id }?.let {
+//                newList.add(it)
+//            }
+            map.get(id)?.let { newList.add(it) }
         }
         return newList
     }
