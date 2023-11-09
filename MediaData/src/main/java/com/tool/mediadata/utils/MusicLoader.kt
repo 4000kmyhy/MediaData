@@ -122,6 +122,19 @@ object MusicLoader {
         return getMusicList(context, selection, MediaConfig.getInstance().sortOrder, null)
     }
 
+    /**
+     * 通过歌名、歌手名搜索音乐
+     */
+    @JvmStatic
+    fun getMusicListByTitleOrArtist(context: Context?, name: String?): MutableList<Music> {
+        var selection: String? = null
+        if (!name.isNullOrEmpty()) {
+            selection = MediaStore.Audio.Media.TITLE + " LIKE '%" + name.lowercase() + "%'" + " OR " +
+                    MediaStore.Audio.Media.ARTIST + " LIKE '%" + name.lowercase() + "%'"
+        }
+        return getMusicList(context, selection, MediaConfig.getInstance().sortOrder, null)
+    }
+
     @JvmStatic
     fun getMusicListByArtistId(context: Context?, artistId: Long): MutableList<Music> {
         val selection = MediaStore.Audio.Media.ARTIST_ID + " = " + artistId
