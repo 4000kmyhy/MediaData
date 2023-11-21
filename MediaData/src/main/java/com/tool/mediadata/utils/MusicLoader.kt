@@ -5,7 +5,9 @@ import android.database.Cursor
 import android.provider.MediaStore
 import android.text.TextUtils
 import com.tool.mediadata.MediaConfig
+import com.tool.mediadata.database.MusicOpenHelper
 import com.tool.mediadata.entity.Music
+import java.io.File
 
 /**
  * desc:
@@ -24,7 +26,7 @@ object MusicLoader {
         MediaStore.Audio.Media.ALBUM,
         MediaStore.Audio.Media.DATA,
         MediaStore.Audio.Media.DISPLAY_NAME,
-        MediaStore.Audio.Media.DURATION
+        MediaStore.Audio.Media.DURATION,
     )
 
     @JvmStatic
@@ -32,7 +34,8 @@ object MusicLoader {
         context: Context?,
         selection: String?,
         sortOrder: String?,
-        dir: String?
+        dir: String?,
+        replaceDataFromDownload: Boolean = false//更换已下载数据库的路径
     ): MutableList<Music> {
         val musicList = ArrayList<Music>()
         if (context == null) return musicList
@@ -53,6 +56,10 @@ object MusicLoader {
         if (TextUtils.isEmpty(mSortOrder)) {
             mSortOrder = SortOrder.TITLE_A_Z
         }
+        var downloadPairs: MutableList<Pair<Long, String>>? = null
+        if (replaceDataFromDownload) {
+            downloadPairs = MusicOpenHelper.getDownloadOpenHelper(context).query()
+        }
         var cursor: Cursor? = null
         try {
             cursor = context.contentResolver.query(
@@ -68,23 +75,34 @@ object MusicLoader {
                     val albumId =
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
                     val title =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE))
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)) ?: ""
                     val artist =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)) ?: ""
                     val album =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
-                    val data =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)) ?: ""
+                    var data =
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
                     val displayName =
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
                     val duration =
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+
+                    if (replaceDataFromDownload) {
+                        downloadPairs?.find { it.first == id }?.let {
+                            data = it.second
+                        }
+                    }
+                    //文件不存在
+                    if (!File(data).exists()) {
+                        continue
+                    }
                     if (!TextUtils.isEmpty(dir)) {
                         //有文件夹路径时过滤文件夹
                         if (!TextUtils.equals(data, "$dir/$displayName")) {
                             continue
                         }
                     }
+
                     val music = Music(
                         id,
                         artistId,
@@ -116,8 +134,7 @@ object MusicLoader {
     fun getMusicListByName(context: Context?, name: String?): MutableList<Music> {
         var selection: String? = null
         if (!name.isNullOrEmpty()) {
-            selection =
-                MediaStore.Audio.Media.TITLE + " LIKE '%" + name.lowercase() + "%'"
+            selection = MediaStore.Audio.Media.TITLE + " LIKE '%" + name.lowercase() + "%'"
         }
         return getMusicList(context, selection, MediaConfig.getInstance().sortOrder, null)
     }
@@ -186,7 +203,11 @@ object MusicLoader {
      * 根据id列表获取歌曲
      */
     @JvmStatic
-    fun getMusicListByIds(context: Context?, ids: List<Long?>?): MutableList<Music> {
+    fun getMusicListByIds(
+        context: Context?,
+        ids: List<Long?>?,
+        replaceDataFromDownload: Boolean = false
+    ): MutableList<Music> {
         if (ids == null) return ArrayList()
         val sb = StringBuilder()
         sb.append("_id IN (")
@@ -197,17 +218,21 @@ object MusicLoader {
             }
         }
         sb.append(")")
-        return getMusicList(context, sb.toString(), MediaConfig.getInstance().sortOrder, null)
+        return getMusicList(context, sb.toString(), MediaConfig.getInstance().sortOrder, null, replaceDataFromDownload)
     }
 
     /**
      * 根据id列表获取歌曲，并按id列表排序（可重复）
      */
     @JvmStatic
-    fun getMusicListOrderByIds(context: Context?, ids: List<Long?>?): MutableList<Music> {
+    fun getMusicListOrderByIds(
+        context: Context?,
+        ids: List<Long?>?,
+        replaceDataFromDownload: Boolean = false
+    ): MutableList<Music> {
         if (ids == null) return ArrayList()
         val newList = ArrayList<Music>()
-        val musicList = getMusicListByIds(context, ids)
+        val musicList = getMusicListByIds(context, ids, replaceDataFromDownload)
         val map: Map<Long, Music> = musicList.associateBy { it.id }
         for (id in ids) {
 //            musicList.find { it.id == id }?.let {
@@ -244,5 +269,29 @@ object MusicLoader {
             }
         }
         return ids
+    }
+
+    fun getMusicByPath(context: Context?, path: String): Music? {
+        val selection = MediaStore.Audio.Media.DATA + " = '" + path + "'"
+        val musicList = getMusicList(context, selection, null, null)
+        return if (musicList.isEmpty()) {
+            null
+        } else {
+            musicList.get(0)
+        }
+    }
+
+    fun getMusicById(
+        context: Context?,
+        id: Long,
+        replaceDataFromDownload: Boolean = false
+    ): Music? {
+        val selection = MediaStore.Audio.Media._ID + " = " + id
+        val musicList = getMusicList(context, selection, null, null, replaceDataFromDownload)
+        return if (musicList.isEmpty()) {
+            null
+        } else {
+            musicList.get(0)
+        }
     }
 }

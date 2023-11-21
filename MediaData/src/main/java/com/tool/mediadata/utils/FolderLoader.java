@@ -67,7 +67,7 @@ public class FolderLoader {
     }
 
     public static List<Folder> getFolderList(Context context, String name) {
-        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.DATA, null);
+        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.DATA, null, false);
         return getFolderList(musics, name);
     }
 

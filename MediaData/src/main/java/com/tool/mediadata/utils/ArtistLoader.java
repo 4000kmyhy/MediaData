@@ -63,7 +63,7 @@ public class ArtistLoader {
     }
 
     public static List<Artist> getArtistList(Context context, String name) {
-        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.ARTIST_KEY, null);
+        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.ARTIST_KEY, null, false);
         return getArtistList(musics, name);
     }
 

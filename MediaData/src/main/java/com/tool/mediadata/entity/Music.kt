@@ -15,13 +15,56 @@ data class Music(
     var id: Long,
     var artistId: Long,
     var albumId: Long,
-    var title: String?,
-    var artist: String?,
-    var album: String?,
+    var title: String,
+    var artist: String,
+    var album: String,
     var displayName: String?,
     var data: String,
-    var duration: Long
+    var duration: Long,
+    var type: Int = TYPE_LOCAL
 ) : Parcelable {
+
+    companion object {
+        private const val TYPE_LOCAL = 0
+        private const val TYPE_ONLINE = 1
+    }
+
+    var genres: String = ""
+    var genresId = -1L
+    var playUrl: String = ""
+    var coverUrl: String = ""
+    var downloadUrl: String = ""
+    var isLock = false
+
+    constructor(
+        title: String,
+        artist: String,
+        genres: String,
+        genresId: Long,
+        playUrl: String,
+        coverUrl: String,
+        downloadUrl: String,
+        duration: Long,
+        isLock: Boolean
+    ) : this(
+        -1,
+        -1,
+        -1,
+        title,
+        artist,
+        "",
+        null,
+        "",
+        duration,
+        TYPE_ONLINE
+    ) {
+        this.genres = genres
+        this.genresId = genresId
+        this.playUrl = playUrl
+        this.coverUrl = coverUrl
+        this.downloadUrl = downloadUrl
+        this.isLock = isLock
+    }
 
     /**
      * 获取无后缀文件名
@@ -36,7 +79,10 @@ data class Music(
         return displayName
     }
 
-    override fun toString(): String {
-        return "Music(id=$id, title='$title', artist='$artist', album='$album', data='$data', artistId='$artistId', albumId='$albumId')"
-    }
+    fun isLocal(): Boolean = type == TYPE_LOCAL
+    fun isOnline(): Boolean = type == TYPE_ONLINE
+
+//    override fun toString(): String {
+//        return "Music(id=$id, title='$title', artist='$artist', album='$album', data='$data', artistId='$artistId', albumId='$albumId')"
+//    }
 }
