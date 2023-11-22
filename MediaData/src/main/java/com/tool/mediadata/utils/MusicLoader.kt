@@ -56,10 +56,8 @@ object MusicLoader {
         if (TextUtils.isEmpty(mSortOrder)) {
             mSortOrder = SortOrder.TITLE_A_Z
         }
-        var downloadPairs: MutableList<Pair<Long, String>>? = null
-        if (replaceDataFromDownload) {
-            downloadPairs = MusicOpenHelper.getDownloadOpenHelper(context).query()
-        }
+        val downloadPairs = MusicOpenHelper.getDownloadOpenHelper(context).query()
+
         var cursor: Cursor? = null
         try {
             cursor = context.contentResolver.query(
@@ -88,8 +86,18 @@ object MusicLoader {
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
 
                     if (replaceDataFromDownload) {
-                        downloadPairs?.find { it.first == id }?.let {
-                            data = it.second
+                        if (!File(data).exists()) {
+                            //android10以上无法设置文件绝对路径，文件不存在，从下载数据库中获取实际路径
+                            downloadPairs.find { it.first == id }?.let {
+                                data = it.second
+                            }
+                        }
+                    } else {
+                        if (File(data).exists()) {
+                            //过滤下载文件
+                            if (downloadPairs.find { it.first == id } != null) {
+                                continue
+                            }
                         }
                     }
                     //文件不存在
