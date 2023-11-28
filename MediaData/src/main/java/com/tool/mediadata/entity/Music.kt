@@ -3,6 +3,7 @@ package com.tool.mediadata.entity
 import android.os.Parcelable
 import android.text.TextUtils
 import kotlinx.parcelize.Parcelize
+import java.io.File
 
 /**
  * desc:
@@ -34,7 +35,6 @@ data class Music(
     var playUrl: String = ""
     var coverUrl: String = ""
     var downloadUrl: String = ""
-    var isLock = false
 
     constructor(
         title: String,
@@ -45,7 +45,7 @@ data class Music(
         coverUrl: String,
         downloadUrl: String,
         duration: Long,
-        isLock: Boolean
+        data: String
     ) : this(
         -1,
         -1,
@@ -54,7 +54,7 @@ data class Music(
         artist,
         "",
         null,
-        "",
+        data,
         duration,
         TYPE_ONLINE
     ) {
@@ -63,7 +63,6 @@ data class Music(
         this.playUrl = playUrl
         this.coverUrl = coverUrl
         this.downloadUrl = downloadUrl
-        this.isLock = isLock
     }
 
     /**
@@ -81,6 +80,8 @@ data class Music(
 
     fun isLocal(): Boolean = type == TYPE_LOCAL
     fun isOnline(): Boolean = type == TYPE_ONLINE
+
+    fun isExists(): Boolean = File(data).exists()
 
 //    override fun toString(): String {
 //        return "Music(id=$id, title='$title', artist='$artist', album='$album', data='$data', artistId='$artistId', albumId='$albumId')"

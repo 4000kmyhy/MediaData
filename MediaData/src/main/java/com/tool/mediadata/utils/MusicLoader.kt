@@ -5,7 +5,6 @@ import android.database.Cursor
 import android.provider.MediaStore
 import android.text.TextUtils
 import com.tool.mediadata.MediaConfig
-import com.tool.mediadata.database.MusicOpenHelper
 import com.tool.mediadata.entity.Music
 import java.io.File
 
@@ -34,8 +33,7 @@ object MusicLoader {
         context: Context?,
         selection: String?,
         sortOrder: String?,
-        dir: String?,
-        replaceDataFromDownload: Boolean = false//更换已下载数据库的路径
+        dir: String?
     ): MutableList<Music> {
         val musicList = ArrayList<Music>()
         if (context == null) return musicList
@@ -56,7 +54,6 @@ object MusicLoader {
         if (TextUtils.isEmpty(mSortOrder)) {
             mSortOrder = SortOrder.TITLE_A_Z
         }
-        val downloadPairs = MusicOpenHelper.getDownloadOpenHelper(context).query()
 
         var cursor: Cursor? = null
         try {
@@ -66,40 +63,16 @@ object MusicLoader {
             )
             if (cursor != null) {
                 while (cursor.moveToNext()) {
-                    val id =
-                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
-                    val artistId =
-                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID))
-                    val albumId =
-                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
-                    val title =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)) ?: ""
-                    val artist =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)) ?: ""
-                    val album =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)) ?: ""
-                    var data =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
-                    val displayName =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
-                    val duration =
-                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+                    val artistId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID))
+                    val albumId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
+                    val title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)) ?: ""
+                    val artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)) ?: ""
+                    val album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)) ?: ""
+                    val data = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
+                    val displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+                    val duration = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
 
-                    if (replaceDataFromDownload) {
-                        if (!File(data).exists()) {
-                            //android10以上无法设置文件绝对路径，文件不存在，从下载数据库中获取实际路径
-                            downloadPairs.find { it.first == id }?.let {
-                                data = it.second
-                            }
-                        }
-                    } else {
-                        if (File(data).exists()) {
-                            //过滤下载文件
-                            if (downloadPairs.find { it.first == id } != null) {
-                                continue
-                            }
-                        }
-                    }
                     //文件不存在
                     if (!File(data).exists()) {
                         continue
@@ -211,11 +184,7 @@ object MusicLoader {
      * 根据id列表获取歌曲
      */
     @JvmStatic
-    fun getMusicListByIds(
-        context: Context?,
-        ids: List<Long?>?,
-        replaceDataFromDownload: Boolean = false
-    ): MutableList<Music> {
+    fun getMusicListByIds(context: Context?, ids: List<Long?>?): MutableList<Music> {
         if (ids == null) return ArrayList()
         val sb = StringBuilder()
         sb.append("_id IN (")
@@ -226,21 +195,17 @@ object MusicLoader {
             }
         }
         sb.append(")")
-        return getMusicList(context, sb.toString(), MediaConfig.getInstance().sortOrder, null, replaceDataFromDownload)
+        return getMusicList(context, sb.toString(), MediaConfig.getInstance().sortOrder, null)
     }
 
     /**
      * 根据id列表获取歌曲，并按id列表排序（可重复）
      */
     @JvmStatic
-    fun getMusicListOrderByIds(
-        context: Context?,
-        ids: List<Long?>?,
-        replaceDataFromDownload: Boolean = false
-    ): MutableList<Music> {
+    fun getMusicListOrderByIds(context: Context?, ids: List<Long?>?): MutableList<Music> {
         if (ids == null) return ArrayList()
         val newList = ArrayList<Music>()
-        val musicList = getMusicListByIds(context, ids, replaceDataFromDownload)
+        val musicList = getMusicListByIds(context, ids)
         val map: Map<Long, Music> = musicList.associateBy { it.id }
         for (id in ids) {
 //            musicList.find { it.id == id }?.let {
@@ -289,13 +254,9 @@ object MusicLoader {
         }
     }
 
-    fun getMusicById(
-        context: Context?,
-        id: Long,
-        replaceDataFromDownload: Boolean = false
-    ): Music? {
+    fun getMusicById(context: Context?, id: Long): Music? {
         val selection = MediaStore.Audio.Media._ID + " = " + id
-        val musicList = getMusicList(context, selection, null, null, replaceDataFromDownload)
+        val musicList = getMusicList(context, selection, null, null)
         return if (musicList.isEmpty()) {
             null
         } else {

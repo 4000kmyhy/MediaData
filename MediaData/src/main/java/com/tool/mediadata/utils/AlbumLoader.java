@@ -65,7 +65,7 @@ public class AlbumLoader {
     }
 
     public static List<Album> getAlbumList(Context context, String name) {
-        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.ALBUM_KEY, null, false);
+        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.ALBUM_KEY, null);
         return getAlbumList(musics, name);
     }
 

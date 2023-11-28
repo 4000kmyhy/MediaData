@@ -188,7 +188,7 @@ class PlaylistOpenHelper(context: Context?, dbName: String = "playlist.db") :
     fun addMusicsToPlaylist(musicIds: MutableList<Long>, pid: Long): Int {
         var count = 0
         for (id in musicIds) {
-            if (addMusicToPlaylist(id, pid)) {
+            if (id >= 0 && addMusicToPlaylist(id, pid)) {
                 count++
             }
         }
