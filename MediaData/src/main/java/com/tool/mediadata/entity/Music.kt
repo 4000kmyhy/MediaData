@@ -19,22 +19,21 @@ data class Music(
     var title: String,
     var artist: String,
     var album: String,
-    var displayName: String?,
+    var displayName: String,
     var data: String,
     var duration: Long,
-    var type: Int = TYPE_LOCAL
+    var type: Int = TYPE_LOCAL,
+    var genres: String = "",
+    var genresId: Long = -1L,
+    var playUrl: String = "",
+    var coverUrl: String = "",
+    var downloadUrl: String = "",
 ) : Parcelable {
 
     companion object {
         private const val TYPE_LOCAL = 0
         private const val TYPE_ONLINE = 1
     }
-
-    var genres: String = ""
-    var genresId = -1L
-    var playUrl: String = ""
-    var coverUrl: String = ""
-    var downloadUrl: String = ""
 
     constructor(
         title: String,
@@ -53,26 +52,25 @@ data class Music(
         title,
         artist,
         "",
-        null,
+        "",
         data,
         duration,
-        TYPE_ONLINE
-    ) {
-        this.genres = genres
-        this.genresId = genresId
-        this.playUrl = playUrl
-        this.coverUrl = coverUrl
-        this.downloadUrl = downloadUrl
-    }
+        TYPE_ONLINE,
+        genres,
+        genresId,
+        playUrl,
+        coverUrl,
+        downloadUrl
+    )
 
     /**
      * 获取无后缀文件名
      */
-    fun getDisplayNameNoEx(): String? {
+    fun getDisplayNameNoEx(): String {
         if (!TextUtils.isEmpty(displayName)) {
-            val dot = displayName!!.lastIndexOf('.')
+            val dot = displayName.lastIndexOf('.')
             if (dot > -1) {
-                return displayName!!.substring(0, dot)
+                return displayName.substring(0, dot)
             }
         }
         return displayName

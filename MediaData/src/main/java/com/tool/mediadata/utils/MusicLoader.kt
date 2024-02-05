@@ -5,6 +5,7 @@ import android.database.Cursor
 import android.provider.MediaStore
 import android.text.TextUtils
 import com.tool.mediadata.MediaConfig
+import com.tool.mediadata.database.PlaylistOpenHelper
 import com.tool.mediadata.entity.Music
 import java.io.File
 
@@ -199,6 +200,24 @@ object MusicLoader {
     }
 
     /**
+     * 根据id列表获取歌曲
+     */
+    @JvmStatic
+    fun getMusicListNotByIds(context: Context?, ids: List<Long?>?): MutableList<Music> {
+        if (ids == null) return ArrayList()
+        val sb = StringBuilder()
+        sb.append("_id NOT IN (")
+        for (i in ids.indices) {
+            sb.append(ids[i])
+            if (i < ids.size - 1) {
+                sb.append(",")
+            }
+        }
+        sb.append(")")
+        return getMusicList(context, sb.toString(), MediaConfig.getInstance().sortOrder, null)
+    }
+
+    /**
      * 根据id列表获取歌曲，并按id列表排序（可重复）
      */
     @JvmStatic
@@ -262,5 +281,52 @@ object MusicLoader {
         } else {
             musicList.get(0)
         }
+    }
+
+    fun getArtistMusicList(musicList: MutableList<Music>?, artistId: Long): MutableList<Music>? {
+        return musicList?.filter {
+            artistId == it.artistId
+        }?.toMutableList()
+    }
+
+    fun getAlbumMusicList(musicList: MutableList<Music>?, albumId: Long): MutableList<Music>? {
+        return musicList?.filter {
+            albumId == it.albumId
+        }?.toMutableList()
+    }
+
+    fun getFolderMusicList(musicList: MutableList<Music>?, dir: String): MutableList<Music>? {
+        return musicList?.filter {
+            TextUtils.equals(it.data, "$dir/${it.displayName}")
+        }?.toMutableList()
+    }
+
+    fun getPlaylistMusicList(context: Context, musicList: MutableList<Music>?, playlistId: Long): MutableList<Music>? {
+        if (musicList != null) {
+            val musicIds = PlaylistOpenHelper(context).queryMusicList(playlistId)
+            val newList = ArrayList<Music>()
+            for (music in musicList) {
+                if (musicIds.contains(music.id)) {
+                    newList.add(music)
+                }
+            }
+            return newList
+        }
+        return null
+    }
+
+    fun getNotPlaylistMusicList(context: Context, musicList: MutableList<Music>?, playlistId: Long): MutableList<Music>? {
+        if (musicList != null) {
+            val musicIds = PlaylistOpenHelper(context).queryMusicList(playlistId)
+            val newList = ArrayList<Music>()
+            newList.addAll(musicList)
+            for (music in musicList) {
+                if (musicIds.contains(music.id)) {
+                    newList.remove(music)
+                }
+            }
+            return newList
+        }
+        return null
     }
 }

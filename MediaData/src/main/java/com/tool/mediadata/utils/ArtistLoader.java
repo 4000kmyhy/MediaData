@@ -50,7 +50,8 @@ public class ArtistLoader {
                     if (TextUtils.isEmpty(name)) {
                         artistList.add(artist);
                     } else {
-                        if (artist.getName() != null && artist.getName().toLowerCase().contains(name.toLowerCase())) {
+                        artist.getName();
+                        if (artist.getName().toLowerCase().contains(name.toLowerCase())) {
                             artistList.add(artist);
                         }
                     }

@@ -164,6 +164,13 @@ class PlaylistOpenHelper(context: Context?, dbName: String = "playlist.db") :
         return playlists
     }
 
+    fun getPlaylist(pid: Long): Playlist? {
+        val playlists = queryPlaylists()
+        return playlists.find {
+            it.id == pid
+        }
+    }
+
     /**
      * 添加歌曲到歌单，返回是否成功
      */
