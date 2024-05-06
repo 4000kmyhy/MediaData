@@ -38,12 +38,12 @@ public class ModifyUtils {
         onModifyCallback = callback;
     }
 
-    public static void modifyInfo(Activity activity, long id, String oldPath, String newPath, String displayName, OnModifyCallback callback) {
+    public static void modifyInfo(Activity activity, long id, String oldPath, String newPath, String newName, String displayName, OnModifyCallback callback) {
         if (activity == null) return;
         setOnModifyCallback(callback);
 
         try {
-            modifyInfoInternal(activity, id, oldPath, newPath, displayName);
+            modifyInfoInternal(activity, id, oldPath, newPath, newName, displayName);
         } catch (Exception e) {
             e.printStackTrace();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -51,7 +51,7 @@ public class ModifyUtils {
                     @Override
                     public void grant() {
                         try {
-                            modifyInfoInternal(activity, id, oldPath, newPath, displayName);
+                            modifyInfoInternal(activity, id, oldPath, newPath, newName, displayName);
                         } catch (Exception e) {
                             e.printStackTrace();
                             if (onModifyCallback != null) {
@@ -96,7 +96,7 @@ public class ModifyUtils {
         }
     }
 
-    private static void modifyInfoInternal(Activity activity, long id, String oldPath, String newPath, String displayName) {
+    private static void modifyInfoInternal(Activity activity, long id, String oldPath, String newPath, String newName, String displayName) {
         Uri targetUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
         ContentValues values = new ContentValues();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -107,6 +107,7 @@ public class ModifyUtils {
         } else {
             values.put(MediaStore.Audio.Media.DATA, newPath);
         }
+        values.put(MediaStore.Audio.Media.TITLE, newName);
         values.put(MediaStore.Audio.Media.DISPLAY_NAME, displayName);
         int result = activity.getContentResolver().update(targetUri, values, null, null);
         if (result >= 1) {

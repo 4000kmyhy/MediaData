@@ -64,15 +64,27 @@ object MusicLoader {
             )
             if (cursor != null) {
                 while (cursor.moveToNext()) {
-                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
-                    val artistId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID))
-                    val albumId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
-                    val title = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)) ?: ""
-                    val artist = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)) ?: ""
-                    val album = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)) ?: ""
-                    val data = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
-                    val displayName = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
-                    val duration = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                    val id =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+                    val artistId =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID))
+                    val albumId =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
+                    val title =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE))
+                            ?: ""
+                    val artist =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
+                            ?: ""
+                    val album =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
+                            ?: ""
+                    val data =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
+                    val displayName =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+                    val duration =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
 
                     //文件不存在
                     if (!File(data).exists()) {
@@ -128,8 +140,9 @@ object MusicLoader {
     fun getMusicListByTitleOrArtist(context: Context?, name: String?): MutableList<Music> {
         var selection: String? = null
         if (!name.isNullOrEmpty()) {
-            selection = MediaStore.Audio.Media.TITLE + " LIKE '%" + name.lowercase() + "%'" + " OR " +
-                    MediaStore.Audio.Media.ARTIST + " LIKE '%" + name.lowercase() + "%'"
+            selection =
+                MediaStore.Audio.Media.TITLE + " LIKE '%" + name.lowercase() + "%'" + " OR " +
+                        MediaStore.Audio.Media.ARTIST + " LIKE '%" + name.lowercase() + "%'"
         }
         return getMusicList(context, selection, MediaConfig.getInstance().sortOrder, null)
     }
@@ -236,9 +249,9 @@ object MusicLoader {
     }
 
     @JvmStatic
-    fun getMusicIdsList(musicList: List<Music?>?): MutableList<Long>? {
-        if (musicList == null) return null
-        val ids: MutableList<Long> = ArrayList()
+    fun getMusicIdsList(musicList: List<Music?>?): ArrayList<Long> {
+        val ids = ArrayList<Long>()
+        if (musicList == null) return ids
         for (music in musicList) {
             if (music != null) {
                 ids.add(music.id)
@@ -261,6 +274,16 @@ object MusicLoader {
             }
         }
         return ids
+    }
+
+    @JvmStatic
+    fun getMusicPaths(musicList: List<Music>?): ArrayList<String> {
+        val paths = ArrayList<String>()
+        if (musicList == null) return paths
+        for (music in musicList) {
+            paths.add(music.data)
+        }
+        return paths
     }
 
     fun getMusicByPath(context: Context?, path: String): Music? {
@@ -301,7 +324,11 @@ object MusicLoader {
         }?.toMutableList()
     }
 
-    fun getPlaylistMusicList(context: Context, musicList: MutableList<Music>?, playlistId: Long): MutableList<Music>? {
+    fun getPlaylistMusicList(
+        context: Context,
+        musicList: MutableList<Music>?,
+        playlistId: Long
+    ): MutableList<Music>? {
         if (musicList != null) {
             val musicIds = PlaylistOpenHelper(context).queryMusicList(playlistId)
             val newList = ArrayList<Music>()
@@ -315,7 +342,11 @@ object MusicLoader {
         return null
     }
 
-    fun getNotPlaylistMusicList(context: Context, musicList: MutableList<Music>?, playlistId: Long): MutableList<Music>? {
+    fun getNotPlaylistMusicList(
+        context: Context,
+        musicList: MutableList<Music>?,
+        playlistId: Long
+    ): MutableList<Music>? {
         if (musicList != null) {
             val musicIds = PlaylistOpenHelper(context).queryMusicList(playlistId)
             val newList = ArrayList<Music>()

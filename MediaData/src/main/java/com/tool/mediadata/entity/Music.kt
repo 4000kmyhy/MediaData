@@ -76,6 +76,16 @@ data class Music(
         return displayName
     }
 
+    fun getExtension(): String {
+        if (!TextUtils.isEmpty(displayName)) {
+            val dot = displayName.lastIndexOf('.')
+            if (dot > -1) {
+                return displayName.substring(dot)
+            }
+        }
+        return ""
+    }
+
     fun isLocal(): Boolean = type == TYPE_LOCAL
     fun isOnline(): Boolean = type == TYPE_ONLINE
 
