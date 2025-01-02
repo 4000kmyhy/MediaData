@@ -14,4 +14,11 @@ data class Folder(
     var name: String,
     var path: String,
     var musicCount: Int
-) : Parcelable
+) : Parcelable {
+
+    companion object {
+        fun example(name: String = "xxx", path: String = "xxx"): Folder {
+            return Folder(name, path, 0)
+        }
+    }
+}

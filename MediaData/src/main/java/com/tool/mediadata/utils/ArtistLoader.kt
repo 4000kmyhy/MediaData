@@ -1,74 +1,90 @@
-package com.tool.mediadata.utils;
+package com.tool.mediadata.utils
 
-import android.content.Context;
-import android.provider.MediaStore;
-import android.text.TextUtils;
-
-import com.tool.mediadata.entity.Artist;
-import com.tool.mediadata.entity.Music;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import android.content.Context
+import com.tool.mediadata.MediaConfig
+import com.tool.mediadata.entity.Artist
+import com.tool.mediadata.entity.Music
 
 /**
  * desc:
- * *
+ **
  * user: xujj
- * time: 2022/8/26 14:45
+ * time: 2023/10/20 16:58
  **/
-public class ArtistLoader {
+object ArtistLoader {
 
-    /**
-     * 通过歌曲列表获取歌手列表
-     *
-     * @param musics //按歌手排序的歌曲列表
-     */
-    private static List<Artist> getArtistList(List<Music> musics, String name) {
-        List<Artist> artistList = new ArrayList<>();
-        Map<Long, Artist> artistMap = new LinkedHashMap<>();
+    fun getArtistListBase(
+        musics: List<Music>?,
+        name: String? = null,
+        sortOrder: String? = MediaConfig.getInstance().artistSortOrder
+    ): MutableList<Artist> {
+        if (musics.isNullOrEmpty()) return ArrayList()
+
+        val artistList = ArrayList<Artist>()
+        val artistMap = LinkedHashMap<Long, Artist>()
         try {
-            for (Music music : musics) {
-                long artistId = music.getArtistId();
-                String artistName = music.getArtist();
-
-                Artist artist = artistMap.get(artistId);
+            for (music in musics) {
+                val artistId = music.artistId
+                val artistName = music.artist
+                var artist: Artist? = artistMap.get(artistId)
                 if (artist == null) {
-                    artist = new Artist(artistId, artistName, 1);
-                    artistMap.put(artistId, artist);
+                    artist = Artist(artistId, artistName, 1)
+                    artistMap.put(artistId, artist)
                 } else {
-                    artist.setMusicCount(artist.getMusicCount() + 1);
-                    artistMap.put(artistId, artist);
+                    artist.musicCount = artist.musicCount + 1
+                    artistMap.put(artistId, artist)
                 }
             }
-            Set<Long> set = artistMap.keySet();
-            for (Long artistId : set) {
-                Artist artist = artistMap.get(artistId);
+            val set: Set<Long> = artistMap.keys
+            for (artistId in set) {
+                val artist: Artist? = artistMap.get(artistId)
                 if (artist != null) {
-                    if (TextUtils.isEmpty(name)) {
-                        artistList.add(artist);
+                    if (name.isNullOrEmpty()) {
+                        artistList.add(artist)
                     } else {
-                        artist.getName();
-                        if (artist.getName().toLowerCase().contains(name.toLowerCase())) {
-                            artistList.add(artist);
+                        if (artist.name.lowercase().contains(name.lowercase())) {
+                            artistList.add(artist)
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        return artistList;
+        when (sortOrder) {
+            SortOrder.ArtistSortOrder.ARTIST_A_Z -> {
+                artistList.sortBy {
+                    it.name
+                }
+            }
+
+            SortOrder.ArtistSortOrder.ARTIST_Z_A -> {
+                artistList.sortByDescending {
+                    it.name
+                }
+            }
+
+            SortOrder.ArtistSortOrder.ARTIST_MUSIC_COUNT -> {
+                artistList.sortBy {
+                    it.musicCount
+                }
+            }
+
+            SortOrder.ArtistSortOrder.ARTIST_MUSIC_COUNT_DESC -> {
+                artistList.sortByDescending {
+                    it.musicCount
+                }
+            }
+        }
+        return artistList
     }
 
-    public static List<Artist> getArtistList(Context context, String name) {
-        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.ARTIST_KEY, null);
-        return getArtistList(musics, name);
-    }
-
-    public static List<Artist> getArtistList(Context context) {
-        return getArtistList(context, null);
+    fun getArtistList(
+        context: Context?,
+        name: String? = null,
+        sortOrder: String? = MediaConfig.getInstance().artistSortOrder
+    ): MutableList<Artist> {
+        val musicList = MusicLoader.getAllMusicList(context)
+        return getArtistListBase(musicList, name, sortOrder)
     }
 }

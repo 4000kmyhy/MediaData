@@ -2,8 +2,11 @@ package com.tool.mediadata.entity
 
 import android.os.Parcelable
 import android.text.TextUtils
+import androidx.compose.runtime.Immutable
+import com.tool.mediadata.MediaConfig
 import kotlinx.parcelize.Parcelize
 import java.io.File
+import java.util.UUID
 
 /**
  * desc:
@@ -11,28 +14,47 @@ import java.io.File
  * user: xujj
  * time: 2023/4/14 16:49
  **/
+@Immutable
 @Parcelize
 data class Music(
     var id: Long,
     var artistId: Long,
     var albumId: Long,
-    var title: String,
+    @Deprecated("use name") var title: String,
     var artist: String,
     var album: String,
     var displayName: String,
     var data: String,
     var duration: Long,
+    var dateAdded: Long,
     var type: Int = TYPE_LOCAL,
     var genres: String = "",
     var genresId: Long = -1L,
     var playUrl: String = "",
     var coverUrl: String = "",
     var downloadUrl: String = "",
+    val uuid: String = UUID.randomUUID().toString()
 ) : Parcelable {
 
     companion object {
         private const val TYPE_LOCAL = 0
         private const val TYPE_ONLINE = 1
+
+        fun example(title: String = "xxx", artist: String = "xxx") = Music(
+            id = -1L,
+            artistId = -1L,
+            albumId = -1L,
+            title = title,
+            artist = artist,
+            album = "",
+            displayName = "",
+            data = "",
+            duration = 0L,
+            dateAdded = 0L,
+            type = TYPE_LOCAL
+        )
+
+        fun Music.new() = this.copy(uuid = UUID.randomUUID().toString())
     }
 
     constructor(
@@ -55,6 +77,7 @@ data class Music(
         "",
         data,
         duration,
+        0L,
         TYPE_ONLINE,
         genres,
         genresId,
@@ -91,7 +114,32 @@ data class Music(
 
     fun isExists(): Boolean = File(data).exists()
 
-//    override fun toString(): String {
-//        return "Music(id=$id, title='$title', artist='$artist', album='$album', data='$data', artistId='$artistId', albumId='$albumId')"
-//    }
+    val name: String
+        get() = if (MediaConfig.getInstance().useDisplayNameOrTitle) {
+            getDisplayNameNoEx()
+        } else {
+            title
+        }
+
+    fun rename(
+        name: String,
+        displayName: String,
+        data: String
+    ) {
+        this.title = name
+        this.displayName = displayName
+        this.data = data
+    }
+
+    override fun toString(): String {
+        return "Music(" +
+                "id=$id, " +
+                "title='$title', " +
+                "artist='$artist', " +
+//                "data='$data', " +
+                "uuid='$uuid'" +
+                ")"
+    }
+
+
 }

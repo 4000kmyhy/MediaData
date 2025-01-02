@@ -1,76 +1,94 @@
-package com.tool.mediadata.utils;
+package com.tool.mediadata.utils
 
-import android.content.Context;
-import android.provider.MediaStore;
-import android.text.TextUtils;
-
-import com.tool.mediadata.entity.Album;
-import com.tool.mediadata.entity.Music;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import android.content.Context
+import com.tool.mediadata.MediaConfig
+import com.tool.mediadata.entity.Album
+import com.tool.mediadata.entity.Music
+import com.tool.mediadata.utils.MusicLoader
+import com.tool.mediadata.utils.SortOrder
 
 /**
  * desc:
- * *
+ **
  * user: xujj
- * time: 2022/8/26 9:49
+ * time: 2023/10/26 14:07
  **/
-public class AlbumLoader {
+object AlbumLoader {
 
-    /**
-     * 通过歌曲列表获取专辑列表
-     *
-     * @param musics //按专辑排序的歌曲列表
-     */
-    private static List<Album> getAlbumList(List<Music> musics, String name) {
-        List<Album> albumList = new ArrayList<>();
-        Map<Long, Album> albumMap = new LinkedHashMap<>();
+    fun getAlbumListBase(
+        musics: List<Music>?,
+        name: String? = null,
+        sortOrder: String? = MediaConfig.getInstance().albumSortOrder
+    ): MutableList<Album> {
+        if (musics.isNullOrEmpty()) return ArrayList()
+
+        val albumList = ArrayList<Album>()
+        val albumMap = LinkedHashMap<Long, Album>()
         try {
-            for (Music music : musics) {
-                long albumId = music.getAlbumId();
-                long artistId = music.getArtistId();
-                String albumName = music.getAlbum();
-                String artistName = music.getArtist();
-
-                Album album = albumMap.get(albumId);
+            for (music in musics) {
+                val albumId = music.albumId
+                val artistId = music.artistId
+                val albumName = music.album
+                val artistName = music.artist
+                var album: Album? = albumMap[albumId]
                 if (album == null) {
-                    album = new Album(albumId, albumName, artistId, artistName, 1);
-                    albumMap.put(albumId, album);
+                    album = Album(albumId, albumName, artistId, artistName, 1)
+                    albumMap[albumId] = album
                 } else {
-                    album.setMusicCount(album.getMusicCount() + 1);
-                    albumMap.put(albumId, album);
+                    album.musicCount = album.musicCount + 1
+                    albumMap[albumId] = album
                 }
             }
-            Set<Long> set = albumMap.keySet();
-            for (Long albumId : set) {
-                Album album = albumMap.get(albumId);
+            val set: Set<Long> = albumMap.keys
+            for (albumId in set) {
+                val album: Album? = albumMap[albumId]
                 if (album != null) {
-                    if (TextUtils.isEmpty(name)) {
-                        albumList.add(album);
+                    if (name.isNullOrEmpty()) {
+                        albumList.add(album)
                     } else {
-                        album.getName();
-                        if (album.getName().toLowerCase().contains(name.toLowerCase())) {
-                            albumList.add(album);
+                        if (album.name.lowercase().contains(name.lowercase())) {
+                            albumList.add(album)
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        return albumList;
+        when (sortOrder) {
+            SortOrder.AlbumSortOrder.ALBUM_A_Z -> {
+                albumList.sortBy {
+                    it.name
+                }
+            }
+
+            SortOrder.AlbumSortOrder.ALBUM_Z_A -> {
+                albumList.sortByDescending {
+                    it.name
+                }
+            }
+
+            SortOrder.AlbumSortOrder.ALBUM_MUSIC_COUNT -> {
+                albumList.sortBy {
+                    it.musicCount
+                }
+            }
+
+            SortOrder.AlbumSortOrder.ALBUM_MUSIC_COUNT_DESC -> {
+                albumList.sortByDescending {
+                    it.musicCount
+                }
+            }
+        }
+        return albumList
     }
 
-    public static List<Album> getAlbumList(Context context, String name) {
-        List<Music> musics = MusicLoader.getMusicList(context, null, MediaStore.Audio.Media.ALBUM_KEY, null);
-        return getAlbumList(musics, name);
-    }
-
-    public static List<Album> getAlbumList(Context context) {
-        return getAlbumList(context, null);
+    fun getAlbumList(
+        context: Context,
+        name: String? = null,
+        sortOrder: String? = MediaConfig.getInstance().albumSortOrder
+    ): MutableList<Album> {
+        val musicList = MusicLoader.getAllMusicList(context)
+        return getAlbumListBase(musicList, name, sortOrder)
     }
 }

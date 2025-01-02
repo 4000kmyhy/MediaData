@@ -16,4 +16,17 @@ data class Album(
     var artistId: Long,
     var artistName: String,
     var musicCount: Int
-) : Parcelable
+) : Parcelable {
+
+    companion object {
+        fun example(name: String = "xxx", artistName: String = "xxx"): Album {
+            return Album(
+                -1L,
+                name,
+                -1L,
+                artistName,
+                0
+            )
+        }
+    }
+}

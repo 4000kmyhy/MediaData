@@ -1,5 +1,6 @@
 package com.tool.mediadata.utils
 
+import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.provider.MediaStore
@@ -27,24 +28,27 @@ object MusicLoader {
         MediaStore.Audio.Media.DATA,
         MediaStore.Audio.Media.DISPLAY_NAME,
         MediaStore.Audio.Media.DURATION,
+        MediaStore.Audio.Media.DATE_ADDED,
     )
 
     @JvmStatic
     fun getMusicList(
         context: Context?,
-        selection: String?,
-        sortOrder: String?,
-        dir: String?
+        selection: String? = null,
+        sortOrder: String? = MediaConfig.getInstance().sortOrder,
+        dir: String? = null,
+        filterDuration: Int = MediaConfig.getInstance().filterDuration
     ): MutableList<Music> {
         val musicList = ArrayList<Music>()
         if (context == null) return musicList
         val sb = StringBuilder()
-        sb.append(MediaStore.Audio.Media.DURATION + " > 0")
+        sb.append(MediaStore.Audio.Media.DURATION + " > " + filterDuration)
         sb.append(" AND " + MediaStore.Audio.Media.ARTIST_ID + " > 0")
         sb.append(" AND " + MediaStore.Audio.Media.ALBUM_ID + " > 0")
         sb.append(" AND " + MediaStore.Audio.Media.TITLE + " != ''")
         sb.append(" AND " + MediaStore.Audio.Media.ARTIST + " != 'null'")
         sb.append(" AND " + MediaStore.Audio.Media.ALBUM + " != 'null'")
+        sb.append(" AND " + MediaStore.Audio.Media.DISPLAY_NAME + " != 'null'")
         if (!TextUtils.isEmpty(selection)) {
             sb.append(" AND $selection")
         }
@@ -83,8 +87,11 @@ object MusicLoader {
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
                     val displayName =
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+                            ?: ""
                     val duration =
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION))
+                    val dateAdded =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_ADDED))
 
                     //文件不存在
                     if (!File(data).exists()) {
@@ -106,7 +113,8 @@ object MusicLoader {
                         album,
                         displayName,
                         data,
-                        duration
+                        duration,
+                        dateAdded
                     )
                     musicList.add(music)
                 }
@@ -121,7 +129,7 @@ object MusicLoader {
 
     @JvmStatic
     fun getAllMusicList(context: Context?): MutableList<Music> {
-        return getMusicList(context, null, MediaConfig.getInstance().sortOrder, null)
+        return getMusicList(context)
     }
 
     @JvmStatic
@@ -182,6 +190,39 @@ object MusicLoader {
             cursor = context.contentResolver.query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null,
                 selection, null, null
+            )
+            if (cursor != null && cursor.moveToFirst()) {
+                return true
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            cursor?.close()
+        }
+        return false
+    }
+
+    fun isExists(
+        context: Context?,
+        musicId: Long,
+        filterDuration: Int = MediaConfig.getInstance().filterDuration
+    ): Boolean {
+        if (context == null) return false
+
+        val sb = StringBuilder()
+        sb.append(MediaStore.Audio.Media.DURATION + " > " + filterDuration)
+        sb.append(" AND " + MediaStore.Audio.Media.ARTIST_ID + " > 0")
+        sb.append(" AND " + MediaStore.Audio.Media.ALBUM_ID + " > 0")
+        sb.append(" AND " + MediaStore.Audio.Media.TITLE + " != ''")
+        sb.append(" AND " + MediaStore.Audio.Media.ARTIST + " != 'null'")
+        sb.append(" AND " + MediaStore.Audio.Media.ALBUM + " != 'null'")
+        sb.append(" AND " + MediaStore.Audio.Media.DISPLAY_NAME + " != 'null'")
+
+        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, musicId)
+        var cursor: Cursor? = null
+        try {
+            cursor = context.contentResolver.query(
+                uri, null, sb.toString(), null, null
             )
             if (cursor != null && cursor.moveToFirst()) {
                 return true
@@ -306,19 +347,20 @@ object MusicLoader {
         }
     }
 
-    fun getArtistMusicList(musicList: MutableList<Music>?, artistId: Long): MutableList<Music>? {
+    fun getArtistMusicList(musicList: List<Music>?, artistId: Long): MutableList<Music>? {
         return musicList?.filter {
             artistId == it.artistId
         }?.toMutableList()
     }
 
-    fun getAlbumMusicList(musicList: MutableList<Music>?, albumId: Long): MutableList<Music>? {
+    fun getAlbumMusicList(musicList: List<Music>?, albumId: Long): MutableList<Music>? {
         return musicList?.filter {
             albumId == it.albumId
         }?.toMutableList()
     }
 
-    fun getFolderMusicList(musicList: MutableList<Music>?, dir: String): MutableList<Music>? {
+    fun getFolderMusicList(musicList: List<Music>?, dir: String?): MutableList<Music>? {
+        if (dir.isNullOrEmpty()) return ArrayList()
         return musicList?.filter {
             TextUtils.equals(it.data, "$dir/${it.displayName}")
         }?.toMutableList()
@@ -326,7 +368,7 @@ object MusicLoader {
 
     fun getPlaylistMusicList(
         context: Context,
-        musicList: MutableList<Music>?,
+        musicList: List<Music>?,
         playlistId: Long
     ): MutableList<Music>? {
         if (musicList != null) {
@@ -344,7 +386,7 @@ object MusicLoader {
 
     fun getNotPlaylistMusicList(
         context: Context,
-        musicList: MutableList<Music>?,
+        musicList: List<Music>?,
         playlistId: Long
     ): MutableList<Music>? {
         if (musicList != null) {
@@ -359,5 +401,89 @@ object MusicLoader {
             return newList
         }
         return null
+    }
+
+    fun getIdsMusicList(
+        musicList: List<Music>?,
+        idList: List<Long>?
+    ): List<Music>? {
+        return musicList?.filter {
+            idList?.contains(it.id) == true
+        }
+    }
+
+    fun getOrderIdsMusicList(
+        musicList: List<Music>?,
+        idList: List<Long>?
+    ): List<Music>? {
+        if (musicList != null && idList != null) {
+            val newList = ArrayList<Music>()
+            val map: Map<Long, Music> = musicList.associateBy { it.id }
+            for (id in idList) {
+                map[id]?.let { newList.add(it) }
+            }
+            return newList
+        }
+        return null
+    }
+
+    fun getSearchMusicList(musicList: List<Music>?, name: String?): MutableList<Music>? {
+        if (name.isNullOrBlank()) return ArrayList()
+        return musicList?.filter {
+            it.name.contains(name, true) ||
+                    it.artist.contains(name, true)
+        }?.toMutableList()
+    }
+
+    fun sortMusicList(
+        musicList: List<Music>?,
+        sortOrder: String? = MediaConfig.getInstance().sortOrder
+    ): MutableList<Music>? {
+        val mutableList = musicList?.toMutableList()
+        when (sortOrder) {
+            SortOrder.TITLE_A_Z -> {
+                mutableList?.sortBy {
+                    it.name
+                }
+            }
+
+            SortOrder.TITLE_Z_A -> {
+                mutableList?.sortByDescending {
+                    it.name
+                }
+            }
+
+            SortOrder.DATE_ADDED -> {
+                mutableList?.sortBy {
+                    it.dateAdded
+                }
+            }
+
+            SortOrder.DATE_ADDED_DESC -> {
+                mutableList?.sortByDescending {
+                    it.dateAdded
+                }
+            }
+
+            SortOrder.DURATION -> {
+                mutableList?.sortBy {
+                    it.duration
+                }
+            }
+
+            SortOrder.DURATION_DESC -> {
+                mutableList?.sortByDescending {
+                    it.duration
+                }
+            }
+        }
+        return mutableList
+    }
+
+    fun getLastAddedMusicList(musicList: List<Music>?, day: Int = 30): List<Music>? {
+        val numDaysAgo = System.currentTimeMillis() / 1000 - 24 * 60 * 60 * day
+        return musicList?.filter {
+            it.dateAdded > numDaysAgo
+        }
     }
 }

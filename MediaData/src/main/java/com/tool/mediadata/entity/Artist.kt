@@ -2,6 +2,7 @@ package com.tool.mediadata.entity
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
+import java.util.UUID
 
 /**
  * desc:
@@ -14,4 +15,11 @@ data class Artist(
     var id: Long,
     var name: String,
     var musicCount: Int
-) : Parcelable
+) : Parcelable {
+
+    companion object {
+        fun example(name: String = "xxx"): Artist {
+            return Artist(-1L, name, 0)
+        }
+    }
+}
