@@ -15,12 +15,12 @@ class MediaConfig {
 
     var useDisplayNameOrTitle = false
 
-    var sortOrder: String? = SortOrder.DATE_ADDED_DESC
-    var artistSortOrder: String? = SortOrder.ArtistSortOrder.ARTIST_A_Z
+    var sortOrder: String = SortOrder.DATE_ADDED_DESC
+    var artistSortOrder: String = SortOrder.ArtistSortOrder.ARTIST_A_Z
         private set
-    var albumSortOrder: String? = SortOrder.AlbumSortOrder.ALBUM_A_Z
+    var albumSortOrder: String = SortOrder.AlbumSortOrder.ALBUM_A_Z
         private set
-    var folderSortOrder: String? = SortOrder.FolderSortOrder.FOLDER_A_Z
+    var folderSortOrder: String = SortOrder.FolderSortOrder.FOLDER_A_Z
         private set
 
     var filterDuration = 0
@@ -102,10 +102,10 @@ class MediaConfig {
 
         private const val SHARE_DEF_NAME = "MediaConfig"
 
-        private fun getSP(context: Context?, key: String, defValue: String?): String? {
+        private fun getSP(context: Context?, key: String, defValue: String): String {
             if (context == null) return defValue
             val sp = context.getSharedPreferences(SHARE_DEF_NAME, Context.MODE_PRIVATE)
-            return sp.getString(key, defValue)
+            return sp.getString(key, defValue) ?: defValue
         }
 
         private fun setSP(context: Context?, key: String, value: String) {
