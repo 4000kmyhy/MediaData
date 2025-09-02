@@ -1,169 +1,260 @@
-package com.tool.mediadata.utils;
+package com.tool.mediadata.utils
 
-import android.app.Activity;
-import android.app.PendingIntent;
-import android.content.ContentUris;
-import android.content.ContentValues;
-import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
-import android.os.Build;
-import android.provider.MediaStore;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import android.app.Activity
+import android.content.ContentUris
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import com.tool.mediadata.database.MusicDetailOpenHelper
+import java.io.File
 
 /**
  * desc:
- * *
+ **
  * user: xujj
- * time: 2022/4/13 10:14
+ * time: 2025/6/5 14:25
  **/
-public class ModifyUtils {
+object ModifyUtils {
 
-    public final static int MODIFY_INFO_CODE = 0x01;
+    const val MODIFY_INFO_CODE: Int = 0x01
 
-    public interface OnModifyCallback {
-        void success();
+    interface OnModifyCallback {
+        fun success()
 
-        void failed();
+        fun failed()
 
-        void request();
+        fun request()
     }
 
-    private static OnModifyCallback onModifyCallback;
-
-    private static void setOnModifyCallback(OnModifyCallback callback) {
-        onModifyCallback = callback;
-    }
-
-    public static void modifyInfo(Activity activity, long id, String oldPath, String newPath, String newName, String displayName, OnModifyCallback callback) {
-        if (activity == null) return;
-        setOnModifyCallback(callback);
+    /**
+     * Android10手机只能在系统指定目录下操作，否则重命名会生成新的id
+     */
+    fun renameFile(
+        activity: Activity?,
+        id: Long,
+        oldPath: String,
+        newPath: String,
+        newName: String,
+        displayName: String,
+        callback: OnModifyCallback?
+    ) {
+        if (activity == null) return
 
         try {
-            modifyInfoInternal(activity, id, oldPath, newPath, newName, displayName);
-        } catch (Exception e) {
-            e.printStackTrace();
+            renameFileInternal(activity, id, oldPath, newPath, newName, displayName, callback)
+        } catch (e: Exception) {
+            e.printStackTrace()
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                OnResultCallback onResultCallback = new OnResultCallback() {
-                    @Override
-                    public void grant() {
+                onResultCallback = object : OnResultCallback {
+                    override fun grant() {
                         try {
-                            modifyInfoInternal(activity, id, oldPath, newPath, newName, displayName);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            if (onModifyCallback != null) {
-                                onModifyCallback.failed();
-                                setOnModifyCallback(null);
-                            }
+                            renameFileInternal(
+                                activity,
+                                id,
+                                oldPath,
+                                newPath,
+                                newName,
+                                displayName,
+                                callback
+                            )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            callback?.failed()
                         }
                     }
 
-                    @Override
-                    public void refuse() {
-                        if (onModifyCallback != null) {
-                            onModifyCallback.failed();
-                            setOnModifyCallback(null);
-                        }
+                    override fun refuse() {
+                        callback?.failed()
                     }
-                };
-                setOnResultCallback(onResultCallback);
+                }
                 try {
-                    List<Uri> uris = new ArrayList<>();
-                    Uri targetUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
-                    uris.add(targetUri);
-                    PendingIntent pendingIntent = MediaStore.createWriteRequest(activity.getContentResolver(), uris);
-                    activity.startIntentSenderForResult(pendingIntent.getIntentSender(), MODIFY_INFO_CODE,
-                            null, 0, 0, 0);
-                    if (onModifyCallback != null) {
-                        onModifyCallback.request();
-                    }
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                    if (onModifyCallback != null) {
-                        onModifyCallback.failed();
-                        setOnModifyCallback(null);
-                    }
+                    val uris: MutableList<Uri> = ArrayList()
+                    val targetUri =
+                        ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                    uris.add(targetUri)
+                    val pendingIntent =
+                        MediaStore.createWriteRequest(activity.contentResolver, uris)
+                    activity.startIntentSenderForResult(
+                        pendingIntent.intentSender, MODIFY_INFO_CODE,
+                        null, 0, 0, 0
+                    )
+                    callback?.request()
+                } catch (e1: Exception) {
+                    e1.printStackTrace()
+                    callback?.failed()
                 }
             } else {
-                if (onModifyCallback != null) {
-                    onModifyCallback.failed();
-                    setOnModifyCallback(null);
-                }
+                callback?.failed()
             }
         }
     }
 
-    private static void modifyInfoInternal(Activity activity, long id, String oldPath, String newPath, String newName, String displayName) {
-        Uri targetUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
-        ContentValues values = new ContentValues();
+    private fun renameFileInternal(
+        activity: Activity,
+        id: Long,
+        oldPath: String,
+        newPath: String,
+        newName: String,
+        displayName: String,
+        callback: OnModifyCallback?
+    ) {
+        val targetUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+        val values = ContentValues()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            values.put("is_pending", 1);
-            activity.getContentResolver().update(targetUri, values, null, null);
-            values.clear();
-            values.put("is_pending", 0);
+            values.put("is_pending", 1)
+            activity.contentResolver.update(targetUri, values, null, null)
+            values.clear()
+            values.put("is_pending", 0)
         } else {
-            values.put(MediaStore.Audio.Media.DATA, newPath);
+            values.put(MediaStore.Audio.Media.DATA, newPath)
         }
-        values.put(MediaStore.Audio.Media.TITLE, newName);
-        values.put(MediaStore.Audio.Media.DISPLAY_NAME, displayName);
-        int result = activity.getContentResolver().update(targetUri, values, null, null);
+        values.put(MediaStore.Audio.Media.TITLE, newName)
+        values.put(MediaStore.Audio.Media.DISPLAY_NAME, displayName)
+        val result = activity.contentResolver.update(targetUri, values, null, null)
         if (result >= 1) {
-            File from = new File(oldPath);
-            File to = new File(newPath);
+            val from = File(oldPath)
+            val to = File(newPath)
             //原文件存在并且新文件不存在时重命名文件，Android10以上修改媒体库会自动重命名文件了
             if (from.exists() && !to.exists()) {
                 if (from.renameTo(to)) {
-                    if (onModifyCallback != null) {
-                        onModifyCallback.success();
-                        setOnModifyCallback(null);
-                    }
+                    callback?.success()
                 } else {
-                    if (onModifyCallback != null) {
-                        onModifyCallback.failed();
-                        setOnModifyCallback(null);
-                    }
+                    callback?.failed()
                 }
             } else {
-                if (onModifyCallback != null) {
-                    onModifyCallback.success();
-                    onModifyCallback = null;
-                }
+                callback?.success()
             }
         } else {
-            if (onModifyCallback != null) {
-                onModifyCallback.failed();
-                setOnModifyCallback(null);
+            callback?.failed()
+        }
+    }
+
+    fun modifyInfo(
+        activity: Activity?,
+        id: Long,
+        newTitle: String,
+        newArtist: String,
+        newAlbum: String,
+        callback: OnModifyCallback?
+    ) {
+        if (activity == null) return
+        try {
+            modifyInfoInternal(
+                activity,
+                id,
+                newTitle,
+                newArtist,
+                newAlbum,
+                callback
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                onResultCallback = object : OnResultCallback {
+                    override fun grant() {
+                        try {
+                            modifyInfoInternal(
+                                activity,
+                                id,
+                                newTitle,
+                                newArtist,
+                                newAlbum,
+                                callback
+                            )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            callback?.failed()
+                        }
+                    }
+
+                    override fun refuse() {
+                        callback?.failed()
+                    }
+                }
+                try {
+                    val uris: MutableList<Uri> = ArrayList()
+                    val targetUri =
+                        ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                    uris.add(targetUri)
+                    val pendingIntent =
+                        MediaStore.createWriteRequest(activity.contentResolver, uris)
+                    activity.startIntentSenderForResult(
+                        pendingIntent.intentSender, MODIFY_INFO_CODE,
+                        null, 0, 0, 0
+                    )
+                    callback?.request()
+                } catch (e1: Exception) {
+                    e1.printStackTrace()
+                    callback?.failed()
+                }
+            } else {
+                callback?.failed()
             }
         }
     }
 
-    private interface OnResultCallback {
-        void grant();
-
-        void refuse();
+    private fun modifyInfoInternal(
+        activity: Activity,
+        id: Long,
+        newTitle: String,
+        newArtist: String,
+        newAlbum: String,
+        callback: OnModifyCallback?
+    ) {
+        val targetUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+        val values = ContentValues()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Audio.Media.IS_PENDING, 1)
+            activity.contentResolver.update(targetUri, values, null, null)
+            values.clear()
+            values.put(MediaStore.Audio.Media.IS_PENDING, 0)
+        }
+        values.put(MediaStore.Audio.Media.TITLE, newTitle)
+        values.put(MediaStore.Audio.Media.ARTIST, newArtist)
+        values.put(MediaStore.Audio.Media.ALBUM, newAlbum)
+        val result = activity.contentResolver.update(targetUri, values, null, null)
+        if (result >= 1) {
+            checkInfo(activity, id, newTitle, newArtist, newAlbum)
+            callback?.success()
+        } else {
+            callback?.failed()
+        }
     }
 
-    private static OnResultCallback onResultCallback;
-
-    private static void setOnResultCallback(OnResultCallback callback) {
-        onResultCallback = callback;
+    private fun checkInfo(
+        context: Context,
+        id: Long,
+        title: String,
+        artist: String,
+        album: String
+    ) {
+        val music = MusicLoader.getMusicById(context, id)
+        if (music != null) {
+            if (music.name != title || music.artist != artist || music.album != album) {
+                MusicDetailOpenHelper(context).rename(id, title, artist, album)
+            }
+        }
     }
 
-    public static void onActivityResult(Context context, int requestCode, int resultCode, Intent data) {
+    interface OnResultCallback {
+        fun grant()
+
+        fun refuse()
+    }
+
+    private var onResultCallback: OnResultCallback? = null
+
+    fun onActivityResult(context: Context?, requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == MODIFY_INFO_CODE) {
             if (resultCode == -1) {
-                if (onResultCallback != null) {
-                    onResultCallback.grant();
-                    setOnResultCallback(null);
-                }
+                onResultCallback?.grant()
+                onResultCallback = null
             } else {
-                if (onResultCallback != null) {
-                    onResultCallback.refuse();
-                    setOnResultCallback(null);
-                }
+                onResultCallback?.refuse()
+                onResultCallback = null
             }
         }
     }

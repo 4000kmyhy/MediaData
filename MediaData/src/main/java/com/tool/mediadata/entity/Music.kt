@@ -20,7 +20,7 @@ data class Music(
     var id: Long,
     var artistId: Long,
     var albumId: Long,
-    @Deprecated("use name") var title: String,
+    var title: String,
     var artist: String,
     var album: String,
     var displayName: String,
@@ -131,15 +131,24 @@ data class Music(
         this.data = data
     }
 
+    fun updateInfo(
+        title: String,
+        artist: String,
+        album: String
+    ) {
+        this.title = title
+        this.artist = artist
+        this.album = album
+    }
+
     override fun toString(): String {
         return "Music(" +
                 "id=$id, " +
                 "title='$title', " +
                 "artist='$artist', " +
-//                "data='$data', " +
+                "album='$album', " +
+                "data='$data', " +
                 "uuid='$uuid'" +
                 ")"
     }
-
-
 }

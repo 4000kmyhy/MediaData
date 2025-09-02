@@ -10,6 +10,7 @@ import android.provider.MediaStore
  **/
 
 object SortOrder {
+    const val _ID = MediaStore.Audio.Media._ID
     const val DATE_ADDED = MediaStore.Audio.Media.DATE_ADDED
     const val DATE_ADDED_DESC = MediaStore.Audio.Media.DATE_ADDED + " desc"
     const val TITLE_A_Z = MediaStore.Audio.Media.TITLE

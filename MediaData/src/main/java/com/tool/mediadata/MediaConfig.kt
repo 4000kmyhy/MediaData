@@ -24,6 +24,7 @@ class MediaConfig {
         private set
 
     var filterDuration = 0
+    var useMusicDetail = false
 
     fun init(context: Context?) {
         sortOrder = getSP(context, KEY_MUSIC_SORT_ORDER, SortOrder.DATE_ADDED_DESC)
@@ -32,7 +33,8 @@ class MediaConfig {
     fun initAll(
         context: Context?,
         useDisplayNameOrTitle: Boolean = false,
-        defaultFilterDuration: Int = 0
+        defaultFilterDuration: Int = 0,
+        useMusicDetail: Boolean = false
     ) {
         sortOrder = getSP(context, KEY_MUSIC_SORT_ORDER, SortOrder.DATE_ADDED_DESC)
         artistSortOrder =
@@ -42,8 +44,8 @@ class MediaConfig {
             getSP(context, KEY_FOLDER_SORT_ORDER, SortOrder.FolderSortOrder.FOLDER_A_Z)
 
         this.useDisplayNameOrTitle = useDisplayNameOrTitle
-
-        filterDuration = getSP(context, KEY_FILTER_DURATION, defaultFilterDuration)
+        this.filterDuration = getSP(context, KEY_FILTER_DURATION, defaultFilterDuration)
+        this.useMusicDetail = useMusicDetail
     }
 
     fun setSortOrder(context: Context?, sortOrder: String) {

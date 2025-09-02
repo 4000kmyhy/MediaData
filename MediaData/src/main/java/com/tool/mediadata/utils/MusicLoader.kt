@@ -5,9 +5,12 @@ import android.content.Context
 import android.database.Cursor
 import android.provider.MediaStore
 import android.text.TextUtils
+import android.util.Log
 import com.tool.mediadata.MediaConfig
+import com.tool.mediadata.database.MusicDetailOpenHelper
 import com.tool.mediadata.database.PlaylistOpenHelper
 import com.tool.mediadata.entity.Music
+import com.tool.mediadata.entity.MusicDetail
 import java.io.File
 
 /**
@@ -17,6 +20,8 @@ import java.io.File
  * time: 2023/5/5 9:08
  **/
 object MusicLoader {
+
+    private const val TAG = "MusicLoader"
 
     private val mediaColumns = arrayOf(
         MediaStore.Audio.Media._ID,
@@ -31,13 +36,69 @@ object MusicLoader {
         MediaStore.Audio.Media.DATE_ADDED,
     )
 
+    fun checkMusicList(context: Context, selection: String? = null) {
+        var cursor: Cursor? = null
+        try {
+            cursor = context.contentResolver.query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, mediaColumns,
+                selection, null, null
+            )
+            Log.d(TAG, "checkMusicList: count=" + cursor?.count + ", selection=" + selection)
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    val id =
+                        cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+                    val title =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE))
+                            ?: ""
+                    val artist =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
+                            ?: ""
+                    val album =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
+                            ?: ""
+                    val data =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
+                    val displayName =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME))
+                            ?: ""
+                    Log.d(
+                        TAG, "checkMusicList: id=$id, " +
+                                "title=$title, " +
+                                "artist=$artist, " +
+                                "album=$album, " +
+                                "data=$data, " +
+                                "displayName=$displayName, " +
+                                "exist=${File(data).exists()}, " +
+                                ""
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "checkMusicList: error=$e")
+        } finally {
+            cursor?.close()
+        }
+    }
+
+    fun checkMusicById(context: Context, id: Long) {
+        val selection = MediaStore.Audio.Media._ID + " = " + id
+        checkMusicList(context, selection)
+    }
+
+    fun checkMusicByPath(context: Context, path: String) {
+        val selection = MediaStore.Audio.Media.DATA + " = '$path'"
+        checkMusicList(context, selection)
+    }
+
     @JvmStatic
     fun getMusicList(
         context: Context?,
         selection: String? = null,
         sortOrder: String? = MediaConfig.getInstance().sortOrder,
         dir: String? = null,
-        filterDuration: Int = MediaConfig.getInstance().filterDuration
+        filterDuration: Int = MediaConfig.getInstance().filterDuration,
+        useMusicDetail: Boolean = MediaConfig.getInstance().useMusicDetail
     ): MutableList<Music> {
         val musicList = ArrayList<Music>()
         if (context == null) return musicList
@@ -60,6 +121,11 @@ object MusicLoader {
             mSortOrder = SortOrder.TITLE_A_Z
         }
 
+        val musicDetails = ArrayList<MusicDetail>()
+        if (useMusicDetail) {
+            musicDetails.addAll(MusicDetailOpenHelper(context).query())
+        }
+
         var cursor: Cursor? = null
         try {
             cursor = context.contentResolver.query(
@@ -74,13 +140,13 @@ object MusicLoader {
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST_ID))
                     val albumId =
                         cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
-                    val title =
+                    var title =
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE))
                             ?: ""
-                    val artist =
+                    var artist =
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST))
                             ?: ""
-                    val album =
+                    var album =
                         cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM))
                             ?: ""
                     val data =
@@ -102,6 +168,14 @@ object MusicLoader {
                         if (!TextUtils.equals(data, "$dir/$displayName")) {
                             continue
                         }
+                    }
+
+                    val musicDetail = musicDetails.find { it.id == id }
+                    if (musicDetail != null) {
+                        title = musicDetail.name
+                        artist = musicDetail.artist
+                        album = musicDetail.album
+                        musicDetails.remove(musicDetail)
                     }
 
                     val music = Music(
@@ -329,7 +403,7 @@ object MusicLoader {
 
     fun getMusicByPath(context: Context?, path: String): Music? {
         val selection = MediaStore.Audio.Media.DATA + " = '" + path + "'"
-        val musicList = getMusicList(context, selection, null, null)
+        val musicList = getMusicList(context, selection, null, null, 0, false)
         return if (musicList.isEmpty()) {
             null
         } else {
@@ -339,12 +413,8 @@ object MusicLoader {
 
     fun getMusicById(context: Context?, id: Long): Music? {
         val selection = MediaStore.Audio.Media._ID + " = " + id
-        val musicList = getMusicList(context, selection, null, null)
-        return if (musicList.isEmpty()) {
-            null
-        } else {
-            musicList.get(0)
-        }
+        val musicList = getMusicList(context, selection, null, null, 0, false)
+        return musicList.getOrNull(0)
     }
 
     fun getArtistMusicList(musicList: List<Music>?, artistId: Long): MutableList<Music>? {
@@ -435,55 +505,32 @@ object MusicLoader {
         }?.toMutableList()
     }
 
-    fun sortMusicList(
-        musicList: List<Music>?,
-        sortOrder: String? = MediaConfig.getInstance().sortOrder
-    ): MutableList<Music>? {
-        val mutableList = musicList?.toMutableList()
-        when (sortOrder) {
-            SortOrder.TITLE_A_Z -> {
-                mutableList?.sortBy {
-                    it.name
-                }
-            }
-
-            SortOrder.TITLE_Z_A -> {
-                mutableList?.sortByDescending {
-                    it.name
-                }
-            }
-
-            SortOrder.DATE_ADDED -> {
-                mutableList?.sortBy {
-                    it.dateAdded
-                }
-            }
-
-            SortOrder.DATE_ADDED_DESC -> {
-                mutableList?.sortByDescending {
-                    it.dateAdded
-                }
-            }
-
-            SortOrder.DURATION -> {
-                mutableList?.sortBy {
-                    it.duration
-                }
-            }
-
-            SortOrder.DURATION_DESC -> {
-                mutableList?.sortByDescending {
-                    it.duration
-                }
-            }
-        }
-        return mutableList
-    }
-
     fun getLastAddedMusicList(musicList: List<Music>?, day: Int = 30): List<Music>? {
         val numDaysAgo = System.currentTimeMillis() / 1000 - 24 * 60 * 60 * day
         return musicList?.filter {
             it.dateAdded > numDaysAgo
         }
+    }
+
+    fun List<Music>.sorted(
+        sortOrder: String = MediaConfig.getInstance().sortOrder
+    ): List<Music> {
+        return when (sortOrder) {
+            SortOrder.TITLE_A_Z -> sortedBy { it.name.lowercase() }
+            SortOrder.TITLE_Z_A -> sortedByDescending { it.name.lowercase() }
+            SortOrder.DATE_ADDED -> sortedBy { it.dateAdded }
+            SortOrder.DATE_ADDED_DESC -> sortedByDescending { it.dateAdded }
+            SortOrder.DURATION -> sortedBy { it.duration }
+            SortOrder.DURATION_DESC -> sortedByDescending { it.duration }
+            else -> sortedBy { it.id }
+        }
+    }
+
+    fun List<Music>.getIdList(): List<Long> {
+        val ids = ArrayList<Long>()
+        forEach {
+            ids.add(it.id)
+        }
+        return ids
     }
 }

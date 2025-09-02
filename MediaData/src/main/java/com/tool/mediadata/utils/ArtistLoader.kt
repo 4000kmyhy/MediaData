@@ -4,6 +4,7 @@ import android.content.Context
 import com.tool.mediadata.MediaConfig
 import com.tool.mediadata.entity.Artist
 import com.tool.mediadata.entity.Music
+import com.tool.mediadata.utils.MusicLoader.sorted
 
 /**
  * desc:
@@ -19,11 +20,12 @@ object ArtistLoader {
         sortOrder: String? = MediaConfig.getInstance().artistSortOrder
     ): MutableList<Artist> {
         if (musics.isNullOrEmpty()) return ArrayList()
+        val musicList = musics.sorted(SortOrder._ID)
 
         val artistList = ArrayList<Artist>()
         val artistMap = LinkedHashMap<Long, Artist>()
         try {
-            for (music in musics) {
+            for (music in musicList) {
                 val artistId = music.artistId
                 val artistName = music.artist
                 var artist: Artist? = artistMap.get(artistId)
